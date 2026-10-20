@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d1117">
+  <title>Administración | ZEVRYNT-NEW</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <script>
+    try {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', savedTheme ? savedTheme === 'dark' : prefersDark);
+    } catch (error) {
+      console.warn('No se pudo leer la preferencia de tema guardada.', error);
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'selector' };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./supabase-config.js"></script>
+  <script src="./admin.js" defer></script>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-900 dark:bg-[#0d1117] dark:text-[#e8e8ec]">
+  <header class="border-b border-gray-200 bg-white/90 dark:border-[#30363d] dark:bg-[#161b22]/90">
+    <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
+      <a href="./index.html" class="text-xl font-bold tracking-tight">
+        <span class="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">ZEVRYNT-NEW</span>
+      </a>
+      <a href="./index.html" class="text-sm text-cyan-600 hover:underline dark:text-cyan-400">Volver a noticias</a>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-4 py-10">
+    <section id="setupNotice" class="mb-6 hidden rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-300" role="alert"></section>
+    <div id="adminStatus" class="mb-6 hidden rounded-lg border p-4 text-sm" role="status" aria-live="polite"></div>
+    <section id="loginPanel" class="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-[#30363d] dark:bg-[#161b22]" aria-labelledby="loginHeading">
+      <h1 id="loginHeading" class="mb-2 text-2xl font-bold text-gray-900 dark:text-white">Acceso de administración</h1>
+      <p class="mb-6 text-sm text-gray-600 dark:text-[#8b949e]">Inicia sesión con la cuenta autorizada en Supabase.</p>
+      <form id="loginForm" class="space-y-4">
+        <label class="block text-sm font-medium" for="loginEmail">Correo electrónico</label>
+        <input id="loginEmail" name="email" type="email" autocomplete="username" required class="admin-input">
+        <label class="block text-sm font-medium" for="loginPassword">Contraseña</label>
+        <input id="loginPassword" name="password" type="password" autocomplete="current-password" required class="admin-input">
+        <button id="loginButton" type="submit" class="w-full rounded-lg bg-cyan-600 px-4 py-3 font-semibold text-white transition hover:bg-cyan-500 disabled:cursor-wait disabled:opacity-60">Iniciar sesión</button>
+      </form>
+    </section>
+
+    <section id="dashboard" class="hidden" aria-labelledby="dashboardHeading">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 id="dashboardHeading" class="text-2xl font-bold text-gray-900 dark:text-white">Panel de noticias</h1>
+          <p id="signedInAs" class="mt-1 text-sm text-gray-500 dark:text-[#8b949e]"></p>
+        </div>
+        <button id="logoutButton" type="button" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-100 dark:border-[#30363d] dark:hover:bg-[#21262d]">Cerrar sesión</button>
+      </div>
+
+      <form id="articleForm" class="mb-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-[#30363d] dark:bg-[#161b22]">
+        <h2 class="mb-6 text-xl font-bold text-gray-900 dark:text-white">Publicar noticia</h2>
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label class="mb-2 block text-sm font-medium" for="articleTitle">Título</label>
+            <input id="articleTitle" name="title" maxlength="180" required class="admin-input" placeholder="Título de la noticia">
+          </div>
+          <div>
+            <label class="mb-2 block text-sm font-medium" for="articleCategory">Categoría</label>
+            <select id="articleCategory" name="category" required class="admin-input">
+              <option value="Petróleo">Petróleo</option>
+              <option value="IA">Inteligencia Artificial</option>
+              <option value="Cripto">Cripto</option>
+              <option value="Economía">Economía</option>
+            </select>
+          </div>
+          <div>
+            <label class="mb-2 block text-sm font-medium" for="articleReadTime">Minutos de lectura</label>
+            <input id="articleReadTime" name="readTime" type="number" min="1" max="60" value="3" required class="admin-input">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="mb-2 block text-sm font-medium" for="articleDescription">Resumen</label>
+            <textarea id="articleDescription" name="description" maxlength="400" rows="3" required class="admin-input" placeholder="Un resumen breve para la tarjeta de noticia"></textarea>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="mb-2 block text-sm font-medium" for="articleBody">Contenido completo</label>
+            <textarea id="articleBody" name="body" rows="7" required class="admin-input" placeholder="Escribe el artículo. Separa los párrafos con una línea en blanco."></textarea>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="mb-2 block text-sm font-medium" for="articleImage">Imagen</label>
+            <input id="articleImage" name="image" type="file" accept="image/png,image/jpeg,image/webp" required class="admin-input file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 dark:file:bg-[#21262d]">
+            <p class="mt-2 text-xs text-gray-500 dark:text-[#8b949e]">PNG, JPG o WebP · máximo 5 MB.</p>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="mb-2 block text-sm font-medium" for="articleImageAlt">Descripción de la imagen (accesibilidad)</label>
+            <input id="articleImageAlt" name="imageAlt" maxlength="180" required class="admin-input" placeholder="Describe brevemente la imagen">
+          </div>
+        </div>
+        <button id="publishButton" type="submit" class="mt-6 rounded-lg bg-cyan-600 px-5 py-3 font-semibold text-white transition hover:bg-cyan-500 disabled:cursor-wait disabled:opacity-60">Publicar noticia</button>
+      </form>
+
+      <section aria-labelledby="publishedHeading">
+        <h2 id="publishedHeading" class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Noticias publicadas</h2>
+        <div id="adminArticleList" class="space-y-3"></div>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

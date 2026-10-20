@@ -6,9 +6,8 @@
   <meta name="description" content="Noticias y análisis sobre inteligencia artificial, cripto, energía y economía global.">
   <meta name="theme-color" content="#0d1117">
   <title>ZEVRYNT-NEW | Noticias y análisis</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script>
-    window.tailwind = window.tailwind || {};
-    window.tailwind.config = { darkMode: 'class' };
     try {
       const savedTheme = localStorage.getItem('theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -18,10 +17,15 @@
     }
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'selector' };
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./supabase-config.js"></script>
   <script src="./script.js" defer></script>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 transition-colors duration-200 dark:bg-[#0d1117] dark:text-[#e8e8ec]">
@@ -76,6 +80,7 @@
             Todas las noticias
           </h1>
           <p id="resultCount" class="mt-2 text-sm text-gray-500 dark:text-[#8b949e]" aria-live="polite"></p>
+          <p id="contentStatus" class="mt-2 hidden text-sm text-amber-600 dark:text-amber-400" role="status"></p>
         </div>
         <form id="newsFilters" class="grid gap-3 sm:grid-cols-[minmax(14rem,1fr)_12rem]" role="search" aria-label="Buscar noticias">
           <label class="sr-only" for="searchInput">Buscar noticias por título o descripción</label>
@@ -134,7 +139,7 @@
   </main>
 
   <footer class="border-t border-gray-200 py-6 text-center text-xs text-gray-500 dark:border-[#30363d] dark:text-[#787880]">
-    <p>ZEVRYNT-NEW · <span id="currentYear"></span> · Todos los derechos reservados</p>
+    <p>ZEVRYNT-NEW · <span id="currentYear"></span> · Todos los derechos reservados · <a href="./admin.html" class="underline-offset-4 hover:underline">Administración</a></p>
   </footer>
 
   <div id="newsModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4 backdrop-blur-sm" aria-hidden="true">

@@ -5,7 +5,7 @@ const categories = [
   { name: 'Economía', id: 'economia', heading: 'Economía Global', color: 'purple' }
 ];
 
-const articles = [
+const sampleArticles = [
   {
     id: 'fmi-inversion-ia',
     category: 'IA',
@@ -77,6 +77,7 @@ const articles = [
     ]
   }
 ];
+let articles = [...sampleArticles];
 
 const categoryStyles = {
   emerald: {
@@ -138,6 +139,7 @@ const searchInput = document.getElementById('searchInput');
 const categoryFilter = document.getElementById('categoryFilter');
 const resultCount = document.getElementById('resultCount');
 const emptyState = document.getElementById('emptyState');
+const contentStatus = document.getElementById('contentStatus');
 const modal = document.getElementById('newsModal');
 const modalDialog = modal.querySelector('[role="dialog"]');
 const closeModalButton = document.getElementById('closeModal');
@@ -178,6 +180,45 @@ function renderNews() {
     .join('');
 }
 
+async function loadPublishedNews() {
+  const config = window.ZEVRYNT_SUPABASE_CONFIG;
+  if (!config?.url || !config?.anonKey) return;
+
+  if (!window.supabase?.createClient) {
+    contentStatus.textContent = 'No se pudo cargar el servicio de noticias. Recarga la página o inténtalo más tarde.';
+    contentStatus.classList.remove('hidden');
+    console.error('El cliente de Supabase no está disponible.');
+    return;
+  }
+
+  const client = window.supabase.createClient(config.url, config.anonKey);
+  const { data, error } = await client
+    .from('news_articles')
+    .select('id, category, title, image_url, image_alt, description, read_time, date_label, body')
+    .eq('is_published', true)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    contentStatus.textContent = 'No fue posible cargar las noticias guardadas. Se muestran los artículos de muestra mientras se restablece la conexión.';
+    contentStatus.classList.remove('hidden');
+    console.error('No se pudieron cargar las noticias publicadas de Supabase.', error);
+    return;
+  }
+
+  articles = data.map((article) => ({
+    id: article.id,
+    category: article.category,
+    title: article.title,
+    image: article.image_url,
+    imageAlt: article.image_alt,
+    description: article.description,
+    readTime: article.read_time,
+    date: article.date_label,
+    body: article.body
+  }));
+  renderNews();
+}
+
 function renderMarketTicker() {
   const prices = [
     ['BTC', 81913],
@@ -197,8 +238,8 @@ function renderMarketTicker() {
 
 function syncThemeButton() {
   const isDark = document.documentElement.classList.contains('dark');
-  document.getElementById('moonIcon').classList.toggle('hidden', !isDark);
-  document.getElementById('sunIcon').classList.toggle('hidden', isDark);
+  document.getElementById('sunIcon').classList.toggle('hidden', !isDark);
+  document.getElementById('moonIcon').classList.toggle('hidden', isDark);
   document.getElementById('themeToggle').setAttribute('aria-label', `Activar modo ${isDark ? 'claro' : 'oscuro'}`);
 }
 
@@ -260,6 +301,17 @@ function hideModal() {
 }
 
 document.addEventListener('click', (event) => {
+  const anchor = event.target.closest('a[href^="#"]');
+  if (anchor) {
+    const target = document.getElementById(anchor.getAttribute('href').slice(1));
+    if (target) {
+      event.preventDefault();
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    return;
+  }
+
   const trigger = event.target.closest('[data-article-id]');
   if (!trigger) return;
 
@@ -297,3 +349,8 @@ document.addEventListener('keydown', (event) => {
 syncThemeButton();
 renderMarketTicker();
 renderNews();
+loadPublishedNews().catch((error) => {
+  contentStatus.textContent = 'Ocurrió un error al cargar las noticias guardadas. Se muestran los artículos de muestra.';
+  contentStatus.classList.remove('hidden');
+  console.error('Error inesperado al cargar noticias desde Supabase.', error);
+});

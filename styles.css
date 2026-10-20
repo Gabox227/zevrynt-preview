@@ -78,6 +78,27 @@ body {
   transition: border-color 150ms ease;
 }
 
+.admin-input {
+  display: block;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 0.75rem 0.875rem;
+  color: #111827;
+}
+
+.admin-input:focus {
+  border-color: #06b6d4;
+  outline: 2px solid rgb(6 182 212 / 20%);
+}
+
+.dark .admin-input {
+  border-color: #30363d;
+  background: #0d1117;
+  color: #e8e8ec;
+}
+
 .dark .resource-link {
   border-color: #30363d;
   background: #0d1117;
